@@ -1,0 +1,1 @@
+export default filter => reducer => (state, action) => filter(state, action) ? reducer(state, action) : state

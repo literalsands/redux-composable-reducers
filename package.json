@@ -1,0 +1,56 @@
+{
+  "name": "redux-composable-reducers",
+  "version": "0.1.0",
+  "description": "Transducers (reducer composition) tailored to redux-style actions and state trees.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "NODE_PATH=. npx babel -s inline -d lib src --ignore '**/*.test.js'",
+    "prepublishOnly": "npm run build",
+    "test": "NODE_PATH=. npx ava test/**.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/literalsands/redux-composable-reducers.git"
+  },
+  "keywords": [
+    "redux",
+    "reducer",
+    "transducer",
+    "compose",
+    "FSA",
+    "xform"
+  ],
+  "files": [
+    "lib/**"
+  ],
+  "author": "Austin New <literalsands@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/literalsands/redux-composable-reducers/issues"
+  },
+  "homepage": "https://github.com/literalsands/redux-composable-reducers#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/register": "^7.4.0",
+    "ava": "^1.4.1",
+    "core-js": "^3.2.1",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "ava": {
+    "require": [
+      "core-js/stable",
+      "regenerator-runtime/runtime",
+      "@babel/register"
+    ],
+    "babel": {
+      "testOptions": {
+        "presets": [
+          "@babel/preset-env"
+        ],
+        "ignore": []
+      }
+    }
+  }
+}
