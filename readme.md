@@ -2,6 +2,8 @@
 
 _A collection of functions for composing and simplifying reducers in redux._
 
+* typescript
+
 🚧 🚧
 Under active development.
 Pull requests and discussion are very welcome.
