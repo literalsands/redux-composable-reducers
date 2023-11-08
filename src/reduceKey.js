@@ -17,4 +17,3 @@ const reduceKey = keyReducer => {
 };
 
 export default reduceKey;
-

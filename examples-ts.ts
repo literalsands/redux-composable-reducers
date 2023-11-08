@@ -1,38 +1,44 @@
+import initialState from "./src/initialState";
+import intoObject from "./src/intoObject";
+import pass from "./src/pass";
+import reduce from "./src/reduce";
 import {
-  initialState,
-  reduce,
   type,
   action,
   payload,
   // compose,
   intoArrayKey,
   intoObjectKey,
-  intoObject,
-//@ts-ignore
 } from "./src";
 
-import { Reducer } from "./src/types";
+import { IdentityReducer, Reducer, Action } from "./src/types";
 
 // type Reducer = <T, B>(state: T, action: {type: string, payload: B}) => T
 
-type HistoryState = {past: any[], present: any, future: any[]}
-export const forwardHistory = (reducer: Reducer) =>
+type HistoryState<H> = {past: H[], present: H | null, future: H[]}
+type HistoryStateReducer = IdentityReducer<HistoryState<{id: string}>, Action<TodoActions, any>>
+
+export const forwardHistory = <H>(reducer: HistoryStateReducer) =>
   reduce(
+    initialState({ past: [], present: null, future: [] })(pass),
     intoObject({
-      past: initialState([])((state: HistoryState) => state.past.concat(state.present)),
+      past: (
+        (state: HistoryState<H>) =>
+          state.present === null ? [] : state.past.concat(state.present)
+      ),
     }),
-    intoObject({
+    intoObjectKey({
       present: reducer,
       future: () => [],
     })
   );
 
-export const pushHistory = (reducer: Reducer) =>
+export const pushHistory = (reducer: HistoryStateReducer) =>
   reduce(
     intoObject({
       past: initialState([])((state: HistoryState) => state.past.concat(state.present)),
-    }),
-    intoObject({
+    // }),
+    // intoObject({
       present: reducer,
       future: () => [],
     })
@@ -41,8 +47,8 @@ export const pushHistory = (reducer: Reducer) =>
 export const backwardHistory = reduce(
   intoObject({
     present: (state: HistoryState) => state.past[state.past.length - 1],
-  }),
-  intoObject({
+  // }),
+  // intoObject({
     past: initialState([])((state: HistoryState) => state.past.slice(0, -1)),
     future: initialState([])((state: HistoryState) => state.future.concat(state.present)),
   })

@@ -110,6 +110,18 @@ const isNormal = (t, reducer, ...actions) => {
 isNormal.title = (title = "", reducer, ...actions) =>
   `${title} is normal over ${JSON.stringify(actions)}`;
 
+const isNotNormal = (t, reducer, ...actions) => {
+  t.is(typeof reducer, "function");
+  const nextState = actions.reduce(reducer, undefined);
+  t.false(
+    actions.every(action => nextState === reducer(nextState, action)),
+    "The reducer does not return the same state once an action has been applied for any previous action."
+  )
+};
+isNotNormal.title = (title = "", reducer, ...actions) =>
+  `${title} is not normal over ${JSON.stringify(actions)}`;
+
+
 const isDeclarative = (t, reducer, state, action) => {
   t.is(typeof reducer, "function");
   const stateRef = state;
@@ -135,5 +147,7 @@ export {
   isActionInvariant,
   isNotActionInvariant,
   isStateInvariant,
-  isNotStateInvariant
+  isNotStateInvariant,
+  isNormal,
+  isNotNormal
 };

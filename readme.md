@@ -1,96 +1,166 @@
 # `redux-composable-reducers`
 
-_A collection of functions for composing and simplifying reducers in redux._
-
-* typescript
-
-🚧 🚧
-Under active development.
-Pull requests and discussion are very welcome.
-Some functions names and signatures are likely to change.
-🚧 🚧
+_A collection of functions for composing traditional and redux-like reducers._
 
 ## Functions
 
-### into-like
+### Key Concepts
 
-`transducer(keyReducer<reducer>)(withKeyStateReducer<reducer>)`
-`transducer(keyReducer<string>)(withKeyStateReducer<reducer>)`
-`transducer(keyReducerObject<object>)`
+- Functions are called with a single reducer.
+- Functions that require multiple reducers curry.
+- Functions can take shorthand reducers where appropriate.
+  - On key reducers...
+    - string and number values are interpretted as keys.
+    - object's keys are interpretted as keys, and their values are intepretted as reducers. (Removing the reducers.)
+  - On non-key reducers...
+    - string and number values are interpretted as values and returned.
+  - On branching reducers...
+    - object's keys are interpretted as switch branches based on the state, and their values are intepretted as reducers.
 
-### branch-like
+### Overview
 
-`transducer(branchObject<object>)(pathReducer<reducer>)`
-`transducer(reducerReducer<reducer>)`
+#### Action Transducers
 
-### reduce-like
+##### _action_`(reducer)(state, action)`
 
-`transducer(<reducer>, ...)(reducer)`
+- Reduce the action.
 
-### Action Transducers
+<!-- ```js
+action(pass)("foo", "bar"); // => "bar"
 
-_action_ - Reduce the action.
+action(pass)("foo", { type: "big", payload: "bar" }); // => { type: "big", payload: "bar" }
 
-- _payload_ - Reduce the action payload.
-- _error_ - Reduce the action error.
-- _meta_ - Reduce the action meta.
-- _type_ - Reduce the action type.
+action("type")("foo", { type: "big", payload: "bar" }); // => "big"
+``` -->
 
-### Object Key Transducers
+###### _payload_`(reducer)(state, action)`
 
-_reduceKey_ - `state => state[reduceKey(state, action)]` Reduce a key to return as the state.
+- Reduce the action payload.
 
-_intoObject_ - Reduce the state into a key.
+###### _meta_`(reducer)(state, action)`
 
-_intoObjectKey_ - Reduce the key into a key.
+- Reduce the action meta.
 
-_intoArray_ - Reduce the state into a key.
+###### _error_`(reducer)(state, action)`
+
+- Reduce the action error.
+
+###### _type_`(reducer)(state, action)`
+
+- Reduce the action type.
+
+<!-- ```js
+type()(undefined, { type: "big" }) // => "big
+
+type({ notbig: () => "small" })(undefined, { type: "big" }) // => undefined
+
+type({ big: () => "BIG" })(undefined, { type: "big" }) // => "BIG"
+``` -->
+
+#### Object Key Transducers
+
+##### _key_`(reducer)(state, action)` *alias state*
+
+- Reduce a key to return as the state.
+
+##### _intoObject_`(reducer)(reducer)(state, action)`
+
+- Reduce a state object into a key value on the state.
+- Reduce a key from the state.
+- Reduce the state and action.
+- Return a new object with that key updated to the reduced value.
+
+##### _intoObjectKey_`(reducer)(reducer)(state, action)`
+
+- Reduce a key from the state.
+- Reduce the key value and action.
+- Return a new object with that key updated to the reduced value.
+
+##### _intoArray_`(reducer)(reducer)(state, action)`
+
+- Reduce a key from the state.
+- Reduce the state and action.
+- Return a new array with that key updated to the reduced value.
 
 ### Utilities
 
-_pass_ - `state => state` Just pass the state through.
+#### General
 
-_asReducer_ - Coerce value to a reducer.
+##### _map_`(reducer)(state, action)`
 
-_map_ - Map all the values of an object or array.
+- Map all the values of the state if it is an object or array using the reducer.
 
-_reduce_ - Reduce the reducers with the initial state, and the same action.
+##### _reduce_`(...reducer)(state, action)`
 
-_expand_ - Create more actions to be reduced.
+- Reduce the reducers with the initial state, and the same action.
 
-_merge_ - Merge a state and a nextState.
+##### _compose_`(...transducers)(reducer)(state, action)`
 
-_filter_ - Apply next reducer if a filter reduces to truthy.
+- Combine transducers.
 
-_branch_ - Reduce a reducer and then reduce with that reducer.
+##### _asReducer_`(value)(transducer)(reducer)(state, action)`
 
-_compose_ - Combine transducers.
+- Coerce value to a reducer.
 
-_initialState_ - Initialize the state before reducing.
+#### Control Flow
 
-_dependency_ - Reduce when something on the state has changed.
+##### _branch_`(reducer)(state, action)`
 
-_toAction_ - Set the action of a reducer to a reduced value.
+- Reduce a reducer and then reduce with that reducer.
 
-_toState_ - Set the state of a reducer to a reduced value.
+##### _expand_`(reducer)(reducer)(state, action)`
 
-# Why?
+- Return actions, and then reduce those actions.
 
-- The ability leverage and re-use code, even for complex behavior.
+##### _filter_`(reducer)(reducer)(state, action)`
 
-- Simpler measures of correct-ness than the implied methodology.
+- Apply next reducer if a filter reduces to truthy.
 
-## Drawbacks
+##### _dependency_`(reducer)(reducer)(state, action)`
+
+- Reduce when something on the state has changed.
+
+#### State Transducers
+
+###### _pass_`(state, action)`
+
+- Just pass the state through.
+
+###### _initialState_`(value)(reducer)(state, action)`
+
+- Initialize the state before reducing.
+
+##### _merge_`(mergeReducer)(reducer)(state, action)`
+
+- Merge the reduced state into the state.
+
+##### _toState_`(getStateReducer)(reducer)(state, action)`
+
+- Set the state of a reducer to a reduced value.
+
+##### _toAction_`(getActionReducer)(reducer)(state, action)`
+
+- Set the action of a reducer to a reduced value.
+
+## Why?
+
+- Leverage and re-use code, even for complex behavior.
+- Simple measures of correct-ness.
+- Terse, but highly readable when well-written.
+
+### Drawbacks
 
 - Composed functions are often less performant than well-written, inlined versions.
+  - This may be remedied in transpilation and with future changes.
+- Composed functions can be unforgiving and hard to debug.
+  - Accidental, uncapped, or conditional recursion is more common.
+  - Values may sometimes seem mysterious -- functions for calculation are often separate from functions that define structure.
 
-- Composed functions can be hard to debug.
+<!-- ## Gotchas -->
 
-## Gotchas
+## Concepts
 
-# Concepts
-
-## Reducers
+### Reducers
 
 Reducers are functions that take two or fewer arguments and return a value.
 
@@ -102,61 +172,84 @@ Reducers can be deterministic, stable, normal, consistent, and declarative.
 
 - Deterministic functions return the same value when given the same arguments.
 
-`f(a, b) == f(a, b)`
+```js
+f(a, b) == f(a, b)
+```
 
 - Stable functions return the same value when setting their first argument to their output.
 
-`f(a, b) == f(f(a, b), b)`
+```js
+f(a, b) == f(f(a, b), b)
+```
 
 - Normal functions return the same value, but for any second argument, in any order.
   - In practise, this implies eventual consistency of the data and resilience to duplicate messages.
 
-`f(f(a, c), b) == f(f(f(a, b), c), b)`
+```js
+f(f(a, c), b) == f(f(f(a, b), c), b)
+```
 
 - Declarative functions never mutate the given arguments.
 - Consistent functions always return a value of the same type and never return undefined.
 
-## Transducers
+### Transducers
 
 Transducers are functions that take one or more reducers and return a reducer.
 
-## Transducer Reducers
+### Transducer Reducers
 
 Transducer-reducers are functions that one or more reducers or transducers and return a transducer.
 
-# Examples
+### Function Signatures
 
-## Obligatory Todos Example
+#### into-like
+
+`transducer(keyReducer<reducer>)(withKeyStateReducer<reducer>)`
+`transducer(keyReducer<string>)(withKeyStateReducer<reducer>)`
+`transducer(keyReducerObject<object>)`
+
+#### branch-like
+
+`transducer(branchObject<object>)(pathReducer<reducer>)`
+`transducer(reducerReducer<reducer>)`
+
+#### reduce-like
+
+`transducer(<reducer>, ...)(reducer)`
+
+## Examples
+
+### Obligatory Todos Example
 
 ```js
 intoObjectKey({
   todos: initialState([])(
     type({
-      ADD_TODO: intoArrayKey(todos => todos.length)(
+      ADD_TODO: intoArrayKey((todos) => todos.length)(
         intoObjectKey({
           id: action("id"),
           text: action("text"),
-          completed: () => false
+          completed: () => false,
         })
       ),
       TOGGLE_TODO: intoArrayKey((todos, action) =>
-        todos.findIndex(todo => todo.id === action.id)
+        todos.findIndex((todo) => todo.id === action.id)
       )(
         intoObjectKey({
-          completed: completed => !completed
+          completed: (completed) => !completed,
         })
-      )
+      ),
     })
   ),
   visibility: initialState("SHOW_ALL" /*VisibiltyFilters.SHOW_ALL*/)(
     type({
-      SET_VISIBILITY_FILTER: action("filter")
+      SET_VISIBILITY_FILTER: action("filter"),
     })
-  )
+  ),
 });
 ```
 
-# Todo
+## Todo
 
 - [ ] More complete examples.
 - [ ] Thorough tests for every function.
